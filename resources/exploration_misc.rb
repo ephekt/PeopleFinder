@@ -42,20 +42,29 @@ def filter li_users, regex = /(C.O|Advisor|Director|Chairman|Marketing|Board Mem
   puts "We found #{non_execs.size} potential candidates"
 end
 
-def fetch_from_linked_in file='1201285931_results.tsv'
+def fetch_from_linked_in file='1201285931_results.tsv', outfile='local_filtered_results.tsv'
   return unless file
   require 'fastercsv'
   require 'mechanize'
   agent = Mechanize.new
   count = 100
   attempts = 0
-  FasterCSV.foreach(file, {:col_sep =>"\t"}) do |row|
-    attempts = attempts + 1
-    puts row.inspect
-    lin = row[1]
-    page = agent.get lin
-    puts page.search('//span[@class="locality"]').inner_text.strip!
-    break if attempts == count
+  File.open( outfile, "w+" ) do |f|
+    FasterCSV.foreach(file, {:col_sep =>"\t"}) do |row|
+      attempts += 1
+      puts row.inspect
+      lin = row[1]
+      begin
+        page = agent.get lin
+      rescue Exception => e
+        p e.inspect
+      end
+      if page then
+        locality = page.search('//span[@class="locality"]').inner_text.strip!
+        f.write( row.join("\t") + "\n" ) if locality == "San Francisco Bay Area"
+      end
+      break if attempts == count
+    end
   end
   puts "DONE"
 end
