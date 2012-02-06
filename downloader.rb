@@ -6,10 +6,11 @@ def fetch(name, uri)
   return if File.exists?(name)
 
   begin
-    f = File.open(name, 'w+')
-    puts uri
-    f.write(open(uri).read)
-    f.close
+    url_content = open(uri).read
+    
+    File.open(name, 'w+') do |f|
+      f.write url_content
+    end
   rescue Exception => e
     puts "Error: #{e}"
   end

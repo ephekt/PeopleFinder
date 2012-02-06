@@ -1,7 +1,7 @@
 %w(rubygems json bson mongo open-uri).each { |r| require r }
 
 CORES = {
-  "companies" => "company",
+#  "companies" => "company",
   "people" => "person"
 }
 
