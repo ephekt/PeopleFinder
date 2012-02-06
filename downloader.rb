@@ -2,7 +2,9 @@
 
 # http://hidemyass.com/proxy-list/
 
-def fetch(name, uri)  
+def fetch(name, uri)
+  return if File.exists?(name)
+
   begin
     f = File.open(name, 'w+')
     puts uri
@@ -38,10 +40,15 @@ def fetch_records_from_indexes
     rescue Exception => e
       puts "Creating directory failed: #{e}"
     end
-    JSON.parse(File.read("data/index/#{c}.js")).in_groups_of(10000) do |obj_list|
+    JSON.parse(File.read("data/index/#{c}.js")).in_groups_of(10000,false) do |obj_list|
       fork do
-        obj_list.each do |obj|
-          fetch("#{directory_path}/#{obj['permalink']}","http://api.crunchbase.com/v/1/#{CORES[c]}/#{obj['permalink']}.js")
+        begin
+          obj_list.each do |obj|
+            file = "#{directory_path}/#{obj['permalink']}"
+            fetch(file,"http://api.crunchbase.com/v/1/#{CORES[c]}/#{obj['permalink']}.js")
+          end
+        rescue Exception => e
+          puts obj_list.inspect
         end
       end
     end
