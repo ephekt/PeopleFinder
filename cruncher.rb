@@ -1,40 +1,32 @@
-%w(rubygems json bson mongo).each { |c| require c }
+%w(common.rb).each { |c| require c }
 
-db = Mongo::Connection.new.db('crunch_data')
-#db.collection('person').remove({})
+DB = Mongo::Connection.new.db('crunch_data_new')
 
-objects = db.collection('person')
-
-objects.create_index('permalink')
-
-# load individual into db
-path = '/Users/miker/projects/projects/crunchd/data/person/'
-bad_items = []
-Dir.foreach(path) do |item|
-  next if item == '.' or item == '..' or item.start_with?('.')
-  # do work on real items
-  begin
-    person_container = objects.find_one({:permalink => item})
-
-    person = JSON.parse(File.read(path + item))
-
-    revs = person_container['revisions']
-    if revs
-      revs[ person['updated_at'] ] = person
+CORES.keys.each do |c|
+  # create database collection and index
+  collection = DB.collection(CORES[c])
+  collection.create_index('permalink')
+  
+  path = "data/#{c}/"
+  
+  Dir.foreach(path) do |item|
+    next if item.start_with?('.')
+    core_object = JSON.parse(File.read(path + item))
+    if obj = collection.find_one({:permalink => core_object['permalink']})
+      if core_object['updated_at'] > obj['crunch_profile'].last['updated_at']
+        # add a new "latest" profile
+        puts "Adding an updated Profile to #{obj['permalink']}"
+        obj['crunch_profile'].push(core_object)
+        collection.update({:permalink => obj['permalink']},obj)
+        puts "Updated #{obj['permalink']}"
+      end
+      puts "No Update needed for #{obj['permalink']}"
     else
-      revs = { person['updated_at'] => person }
+      puts "Did not find an existing #{core_object['permalink']} Object"
+      collection.insert({
+        "permalink" => core_object['permalink'],
+        "crunch_profile" => [ core_object ]
+      })
     end
-    person_container['revisions'] = revs
-    objects.update({:permalink=>item},person_container)
-  rescue Exception => e
-    bad_items << [item,e]
-  end
+  end  
 end
-
-puts "Bad items: #{bad_items.size}"
-bad_items.each do |bad_item|
-  puts bad_item.inspect
-end
-
-puts objects.count
-puts z = objects.find_one({:permalink => 'zoltn-dor'})

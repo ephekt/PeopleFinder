@@ -1,1 +1,18 @@
-started heavy scraping at 3:50PM at LuLu's Coffee in SC... Have around 98k company datum to pull
+Cruncher -- PeopleTracker
+
+File Structure:
+
+Path: /data
+Notes: Ignored in the .gitignore. Holds information from fetching JSON files from Crunchbase.com/Api
+
+Path: /resources
+Notes: Just some documents to save related to analysis and other things on top of the core code base
+
+Files:
+
+common.rb - some shared monkey patches and constants used by other files
+downloader.rb - parallel fetching of crunchbase people and companies in json format, stores to /data
+cruncher.rb - loads crunchbase data into mongodb. will read from /data, data will not be overwritten into MongoDB.
+
+Future notes:
+It'd be good to timestamp the data directories so we can do pulls daily and then run the cruncher on the new directories, by date. 

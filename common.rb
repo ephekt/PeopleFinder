@@ -1,3 +1,13 @@
+%w(rubygems json bson mongo open-uri).each { |r| require r }
+
+CORES = {
+  "companies" => "company",
+  "people" => "person"
+}
+
+
+# Patches
+
 class Array
   # Splits or iterates over the array in groups of size +number+,
   # padding any remaining slots with +fill_with+ unless it is +false+.

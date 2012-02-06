@@ -1,4 +1,6 @@
-%w(rubygems open-uri json patches.rb).each { |r| require r }
+%w(common.rb).each { |r| require r }
+
+# http://hidemyass.com/proxy-list/
 
 def fetch(name, uri)  
   begin
@@ -10,11 +12,6 @@ def fetch(name, uri)
     puts "Error: #{e}"
   end
 end
-
-CORES = {
-  "companies" => "company",
-  "people" => "person"
-}
 
 def fetch_indexes
   puts "Fetching index files for #{CORES.join(',')}"
@@ -42,11 +39,11 @@ def fetch_records_from_indexes
       puts "Creating directory failed: #{e}"
     end
     JSON.parse(File.read("data/index/#{c}.js")).in_groups_of(10000) do |obj_list|
-      #fork do
+      fork do
         obj_list.each do |obj|
           fetch("#{directory_path}/#{obj['permalink']}","http://api.crunchbase.com/v/1/#{CORES[c]}/#{obj['permalink']}.js")
         end
-      #end
+      end
     end
   end
   
