@@ -1,5 +1,5 @@
 data/
-
+dump/*
 # Logs and databases #
 ######################
 *.log
