@@ -68,3 +68,18 @@ def fetch_from_linked_in file='1201285931_results.tsv', outfile='local_filtered_
   end
   puts "DONE"
 end
+
+def tag_linkedin
+	db = Mongo::Connection.new.db('crunch_data_new')
+	people = db.collection("person")
+	people.find({"crunch_profile.0.web_presences.0" => {"$exists"=> "true"}}).each do |person|
+		linkedin_url = nil
+		person["crunch_profile"][0]["web_presences"].each do |hash|
+			linkedin_url = hash["external_url"] if hash["external_url"] =~ /linkedin\.com\/in/
+		end if person["crunch_profile"][0]["web_presences"]
+		if linkedin_url then
+			person["linkedin_url"] = linkedin_url
+			people.save(person)
+		end
+	end
+end
