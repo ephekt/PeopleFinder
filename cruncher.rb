@@ -12,6 +12,8 @@ CORES.keys.each do |c|
   Dir.foreach(path) do |item|
     next if item.start_with?('.')
     core_object = JSON.parse(File.read(path + item))
+    next if core_object["error"]
+    exit
     if obj = collection.find_one({:permalink => core_object['permalink']})
       if core_object['updated_at'] > obj['crunch_profile'].last['updated_at']
         # add a new "latest" profile
