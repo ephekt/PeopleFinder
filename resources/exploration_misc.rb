@@ -83,3 +83,22 @@ def tag_linkedin
 		end
 	end
 end
+
+def tag_locality
+    require 'mechanize'
+    agent = Mechanize.new
+    agent.history.max_size = 10
+	db = Mongo::Connection.new.db('crunch_data_new')
+	people = db.collection("person")
+	people.find({ "$and" => [ { "linkedin_url" => {"$exists" => 1} }, { "locality" => {"$exists" => 0 } } ] }).each do |person|
+	  begin
+        page = agent.get person["linkedin_url"]
+      rescue Exception => e
+        p e.inspect
+      end
+      if page then
+        person["locality"] = page.search('//span[@class="locality"]').inner_text.strip!
+        people.save(person)
+      end
+	end
+end
