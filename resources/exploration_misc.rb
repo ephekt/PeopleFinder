@@ -72,7 +72,7 @@ end
 def tag_linkedin
 	db = Mongo::Connection.new.db('crunch_data_new')
 	people = db.collection("person")
-	people.find({"crunch_profile.0.web_presences.0" => {"$exists"=> "true"}}).each do |person|
+	people.find({ "$and" => [ {"crunch_profile.0.web_presences.0" => {"$exists"=> "true"}}, {"linkedin_url" => {"$exists" => 0}} ] }).each do |person|
 		linkedin_url = nil
 		person["crunch_profile"][0]["web_presences"].each do |hash|
 			linkedin_url = hash["external_url"] if hash["external_url"] =~ /linkedin\.com\/in/
@@ -95,10 +95,25 @@ def tag_locality
         page = agent.get person["linkedin_url"]
       rescue Exception => e
         p e.inspect
+		sleep 0.25 #don't want to get banned
       end
       if page then
         person["locality"] = page.search('//span[@class="locality"]').inner_text.strip!
         people.save(person)
       end
+	end
+end
+
+def tag_exec regex = /(C.O|Advisor|Director|Chairman|Marketing|Board Member|President|VP, Sales|Vice President, Sales|Chief (Executive|Operations|Operating|Revenue) Officer|Founder|Managing Partner|SVP|VP Product)/i
+	db = Mongo::Connection.new.db('crunch_data_new')
+	people = db.collection("person")
+	people.find({}).each do |p|
+  		p["relationships"].each do |r|
+    	    if r["title"] =~ regex then
+    	    {
+    	    	p["is_exec"] = 1
+    	    	people.save(p)
+    	    }
+    	end if p["relationships"]
 	end
 end
