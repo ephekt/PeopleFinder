@@ -14,6 +14,19 @@ get '/' do
 	redirect '/candidate/'
 end
 
+get '/list/*' do |filt|
+  opts = if filt == "yes"
+    {"yes" =>  1}
+  else
+    {"no" =>  1}
+  end
+  
+  cands = people.find(opts)
+  out = "<h2>Total Candidates: #{cands.count}</h2>"
+  out += cands.map { |c| c['permalink'] }.join("<br />")
+  out
+end
+
 get '/candidate/' do
 	return "Done!" unless cand
 	crunchurl = cand["crunch_profile"][0]["crunchbase_url"]
