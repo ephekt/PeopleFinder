@@ -16,12 +16,12 @@ CORES.keys.each do |c|
       file_content = File.read(path + item)
       core_object = JSON.parse(file_content)
     rescue Exception => e
-      puts "Error parsing #{item} -> #{e}\n\n#{file_content}"
+      puts "Error parsing #{item}\n\n"
       next
     end
     
     if core_object["error"]
-      puts "Bad file --> #{item}"
+      puts "Bad file"
       next
     end
 
@@ -39,5 +39,7 @@ CORES.keys.each do |c|
         "crunch_profile" => [ core_object ]
       })
     end
-  end  
+  end
+
+  puts nil
 end

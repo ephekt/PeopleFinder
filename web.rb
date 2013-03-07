@@ -1,11 +1,13 @@
 %w(../common.rb sinatra tagz).each { |c| require c }
 include Tagz.globally
 
-DB = Mongo::Connection.new.db('crunbhase_data')
+DB = Mongo::Connection.new.db('crunchbase_data')
 people = DB.collection("person")
-
-candcursor = people.find({ "$and" => [ {"locality" => "San Francisco Bay Area"}, { "is_exec" => { "$exists" => 0 } }, {"yes" => {"$exists" => 0}}, {"no" => {"$exists" => 0}} ] })
+# {"$and" => [ {"locality" => "San Francisco Bay Area"}, { "is_exec" => { "$exists" => 0 } }, {"yes" => {"$exists" => 0}}, {"no" => {"$exists" => 0}} ] }
+candcursor = people.find({"$or" => [ {"locality" => "San Francisco Bay Area"}, { "linkedin_url" => { "$exists" => 1 } } ] })
 cand = candcursor.next()
+
+disable :protection
 
 get '/' do
 	redirect '/candidate/'
@@ -25,7 +27,10 @@ get '/list/*' do |filt|
 end
 
 get '/candidate/' do
+	response.headers['Access-Control-Allow-Origin'] = '*'
+	response.headers['X-Frame-Options'] = "GOFORIT"
 	return "Done!" unless cand
+
 	crunchurl = cand["crunch_profile"][0]["crunchbase_url"]
 	
 	if params["tags"] then
@@ -33,12 +38,15 @@ get '/candidate/' do
 		people.save(cand)
 	end
 	
-	tagz{
+	tags = tagz{
 
 		h2_(:style => "float:left;"){
 			["yes", "no", "later"].each do |action|
 				a_( :style =>"margin: 1em;", :href => "/candidate/" + action ){ action }
 			end
+		}
+		h3_ {
+			crunchurl
 		}
 		form_(:action => "/candidate/", :method => "GET", :style => "margin: 1em;" ){
 			b_{ "Updated Tags!" } if params["tags"]
@@ -49,9 +57,13 @@ get '/candidate/' do
 		}
 		br_
 		[ crunchurl, cand["linkedin_url"] ].each do |url|
-			iframe_( :width => "49%", :height => "90%", :src => url ){url}
+			a_(:target => "_blank", :href=>url){url}
+			br_
+			#iframe_( :width => "40%", :height => "25%", :src => url, :sanbox => "allow-same-origin allow-scripts allow-popups allow-forms" ){url}
 		end
 	}
+
+	"<!DOCTYPE html><html lang='en-us'><head><meta charset='utf-8'><title>"+crunchurl+"</title></head><body>#{tags}</body></html>"
 end
 
 get '/candidate/*' do |action|
