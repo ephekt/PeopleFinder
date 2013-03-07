@@ -1,14 +1,11 @@
 %w(../common.rb sinatra tagz).each { |c| require c }
 include Tagz.globally
 
-DB = Mongo::Connection.new.db('crunch_data_new')
+DB = Mongo::Connection.new.db('crunbhase_data')
 people = DB.collection("person")
 
 candcursor = people.find({ "$and" => [ {"locality" => "San Francisco Bay Area"}, { "is_exec" => { "$exists" => 0 } }, {"yes" => {"$exists" => 0}}, {"no" => {"$exists" => 0}} ] })
 cand = candcursor.next()
-
-#candlist = FasterCSV.read('candidates.tsv', :col_sep=>"\t")
-
 
 get '/' do
 	redirect '/candidate/'
@@ -55,14 +52,6 @@ get '/candidate/' do
 			iframe_( :width => "49%", :height => "90%", :src => url ){url}
 		end
 	}
-#	s = ''
-#	s << '<h2><a style="margin: 1em;" href="/candidate/yes">yes</a>'
-#	s << '<a style="margin: 1em;" href="/candidate/no">no</a>'
-#	s << '<a style="margin: 1em;" href="/candidate/later">later</a></h2>'
-#	s << '<br>'
-#	s << '<iframe width= "49%%" height="90%%" src="%s"></iframe>' % crunchurl
-#	s << '<iframe width= "49%%" height="90%%" src="%s"></iframe>' % cand["linkedin_url"]
-#	s
 end
 
 get '/candidate/*' do |action|

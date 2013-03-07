@@ -1,6 +1,6 @@
-%w(common.rb).each { |c| require c }
+require './common.rb'
 
-DB = Mongo::Connection.new.db('crunch_data_new')
+DB = Mongo::Connection.new.db('crunchbase_data')
 
 CORES.keys.each do |c|
   # create database collection and index
@@ -33,9 +33,7 @@ CORES.keys.each do |c|
         collection.update({:permalink => obj['permalink']},obj)
         puts "Updated #{obj['permalink']}"
       end
-      puts "No Update needed for #{obj['permalink']}"
     else
-      puts "Did not find an existing #{core_object['permalink']} Object"
       collection.insert({
         "permalink" => core_object['permalink'],
         "crunch_profile" => [ core_object ]

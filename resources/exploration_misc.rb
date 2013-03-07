@@ -1,6 +1,10 @@
-li_users = db.collection('linkedin_users')
+require '../common.rb'
+
+DB = Mongo::Connection.new.db('crunchbase_data')
+li_users = DB.collection('linkedin_users')
 li_users.create_index('permalink')
 
+=begin
 ll.keys.each do |pl|
   profile = people.find_one({:permalink => pl},:fields =>['revisions'])['revisions'].first.last
   begin
@@ -10,6 +14,7 @@ ll.keys.each do |pl|
     puts people.inspect
   end
 end
+=end
 
 def filter li_users, regex = /(C.O|Advisor|Director|Chairman|Marketing|Board Member|President|VP, Sales|Vice President, Sales|Chief (Executive|Operations|Operating|Revenue) Officer|Founder|Managing Partner|SVP|VP Product)/i
   non_execs = {}
@@ -42,6 +47,10 @@ def filter li_users, regex = /(C.O|Advisor|Director|Chairman|Marketing|Board Mem
   puts "We found #{non_execs.size} potential candidates"
 end
 
+filter li_users
+
+exit
+
 def fetch_from_linked_in file='1201285931_results.tsv', outfile='local_filtered_results.tsv'
   return unless file
   require 'fastercsv'
@@ -70,7 +79,7 @@ def fetch_from_linked_in file='1201285931_results.tsv', outfile='local_filtered_
 end
 
 def tag( query, tag )
-	db = Mongo::Connection.new.db('crunch_data_new')
+	db = Mongo::Connection.new.db('crunchbase_data')
 	people = db.collection("person")
 	people.find( { "$and" => [ query, { tag => { "$exists" => 0 } } ] } ).each do |person|
 		person[tag] = yield( person )

@@ -1,8 +1,9 @@
-%w(rubygems json bson mongo open-uri).each { |r| require r }
+%w(rubygems json bson mongo open-uri typhoeus).each { |r| require r }
 
 CORES = {
-#  "companies" => "company",
-  "people" => "person"
+  "companies" => "company",
+  "people" => "person",
+  "financial-organizations" => "financial-organization"
 }
 
 
